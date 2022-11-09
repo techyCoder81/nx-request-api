@@ -1,5 +1,5 @@
 export {};
-    import { DefaultMessenger, SwitchBackend } from "../backend";
+import { DefaultMessenger, SwitchBackend } from "../index";
 import * as Messages from "../messages";
 import { OkOrError, StringResponse } from "../responses";
 
