@@ -26,13 +26,19 @@ export class BasicMessenger {
     private supplier: BackendSupplier;
 
     /**
-     * the constructor, which takes a backend supplier and implements 
-     * @param supplier the backend supplier (wrapper for all backend calls)
+     * the constructor, which optionally takes a backend supplier. If no
+     * supplier implementation is given, the `SwitchBackend` is used by default.
+     * @param supplier the backend supplier (wrapper for all backend calls),
+     *      defaults to the `SwitchBackend`.
      */
-    constructor(supplier: BackendSupplier) {
-        this.supplier = supplier;
+    public constructor(supplier?: BackendSupplier) {
+        if (supplier) {
+            this.supplier = supplier;
+        } else {
+            this.supplier = SwitchBackend.instance();
+        }
     }
-    
+
     /**
      * sends a request to the backend which expects a string response
      * @param name the name of the call, such as `read_file`
@@ -106,7 +112,6 @@ export class BasicMessenger {
  * backend calls like `download_version`, `read_file`, etc.
  */
 export class DefaultMessenger extends BasicMessenger {
-    
     /**
      * pings the backend with a message.
      * @returns whether the backend responded.
@@ -237,7 +242,17 @@ export class SwitchBackend implements BackendSupplier {
     /// Map<ID, function(received object){}>
     callbacks: Map<string, {(object: any): void}> = new Map();
 
-    constructor() {
+    /** singleton to help manage callback behavior */
+    private static singleton: SwitchBackend;
+
+    public static instance(): SwitchBackend {
+        if (!this.singleton) {
+            this.singleton = new SwitchBackend();
+        }
+        return this.singleton;
+    }
+
+    private constructor() {
         //super();
         // add listener for all messages from window.nx
         skyline.addEventListener("message", (event: any) => {

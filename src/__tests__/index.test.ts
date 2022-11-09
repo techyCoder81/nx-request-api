@@ -52,7 +52,7 @@ window.nx = new NxTest();
 
 
 console.info(JSON.stringify(window.nx));
-let backend = new DefaultMessenger(new SwitchBackend());
+let backend = new DefaultMessenger();
 
 test('ping', async () => {
     expect(await backend.ping()).toBe(true);
