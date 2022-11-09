@@ -15,7 +15,7 @@ export class Message {
     /** potentially a structure of arguments */
     arguments: string[] | null;
 
-    constructor(name: string, args: string[] | null) {
+    public constructor(name: string, args: string[] | null) {
         var id = Message.idCounter;
         Message.idCounter++;
         this.id = Message.idCounter.toString();
