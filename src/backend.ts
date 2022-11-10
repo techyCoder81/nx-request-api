@@ -40,36 +40,15 @@ export class BasicMessenger {
     }
 
     /**
-     * sends a request to the backend which expects a string response
-     * @param name the name of the call, such as `read_file`
-     * @param args the `string[]` of arguments, or none
-     * @returns a `Promise` represending the outcome of the operation
-     */
-    public async stringRequest(name: string, args: string[] | null): Promise<string> {
-        console.debug("beginning " + name);
-        return await this.supplier.invoke(new Messages.Message(name, args)).then((json: string) => {
-            console.debug("response for " + name + ": " + json);
-            return StringResponse.from(json).getMessage();
-        }).catch((e: string) => {
-            console.error("Error while performing " + name + ": " + e);
-            throw e;
-        });
-    }
-
-    /**
-     * performs a request of the given name and awaits a BooleanResponse
+     * performs a request of the given name and awaits a response
      * @param name the name of the request
      * @returns a boolean
      */
     public async booleanRequest(name: string, args: string[] | null): Promise<boolean> {
-        console.debug("beginning " + name);
-        return await this.supplier.invoke(new Messages.Message(name, args)).then((json: string) => {
-            console.debug("response for " + name + ": " + json);
-            let response = BooleanResponse.from(json);
-            return response.isOk();
-        }).catch((e: string) => {
-            console.error("Error while performing " + name +": " + e);
-            throw e;
+        return new Promise<boolean>((resolve, reject) => {
+            this.complexRequest(name, args)
+                .then(result => (result === 'true') ? resolve(true) : resolve(true))
+                .catch(e => {console.error(e);reject(e);});
         });
     }
 
@@ -78,7 +57,7 @@ export class BasicMessenger {
      * @param name the name of the request
      * @returns a promise which resolves if the result is Ok, and rejects if the result is a failure
      */
-    public async okOrErrorRequest(name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
+    public async complexRequest(name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
         console.debug("beginning " + name);
         return await this.supplier.invoke(new Messages.Message(name, args), progressCallback).then((json: string) => {
             console.debug("response for " + name + ": " + json);
@@ -117,7 +96,7 @@ export class DefaultMessenger extends BasicMessenger {
      * @returns whether the backend responded.
      */
     async ping(): Promise<boolean> {
-        return this.stringRequest("ping", null).then((response) => {
+        return this.complexRequest("ping", null).then((response) => {
             console.debug("Ping got response: " + response);
             return true;
         }).catch(e => {
@@ -129,32 +108,32 @@ export class DefaultMessenger extends BasicMessenger {
     /** downloads the requested file to the requested 
      * location relative to sdcard root */
      async downloadFile(url: string, location: string, progressCallback?: (p: Progress) => void): Promise<string> {
-        return this.okOrErrorRequest("download_file", [url, location], progressCallback);
+        return this.complexRequest("download_file", [url, location], progressCallback);
     }
 
     /** returns the text contents of a file */
     async readFile(filepath: string): Promise<string> {
-        return this.okOrErrorRequest("read_file", [filepath]);
+        return this.complexRequest("read_file", [filepath]);
     }
 
     /** deletes the given file if it exists */
     async deleteFile(filepath: string): Promise<string> {
-        return this.okOrErrorRequest("delete_file", [filepath]);
+        return this.complexRequest("delete_file", [filepath]);
     }
 
     /** deletes the given file if it exists */
     async writeFile(filepath: string, data: string): Promise<string> {
-        return this.okOrErrorRequest("write_file", [filepath, data]);
+        return this.complexRequest("write_file", [filepath, data]);
     }
 
     /** returns the md5 checksum of a file */
     async getMd5(filepath: string): Promise<string> {
-        return this.okOrErrorRequest("get_md5", [filepath]);
+        return this.complexRequest("get_md5", [filepath]);
     }
 
     /** unzips the file at the given path to the given destination */
     async unzip(filepath: string, destination: string): Promise<string> {
-        return this.okOrErrorRequest("unzip", [filepath, destination]);
+        return this.complexRequest("unzip", [filepath, destination]);
     }
 
     /** returns whether a file exists with the given absolute path */
@@ -170,7 +149,7 @@ export class DefaultMessenger extends BasicMessenger {
     /** returns a list of all files and directories recursively under the given path */
     async listDirAll(filepath: string): Promise<DirTree> {
         return new Promise<DirTree>((resolve, reject) => {
-            this.okOrErrorRequest("list_all_files", [filepath])
+            this.complexRequest("list_all_files", [filepath])
                 .then(result => {
                     let retval = DirTree.fromStr(result);
                     console.debug("parsed directory list as PathList!");
@@ -186,7 +165,7 @@ export class DefaultMessenger extends BasicMessenger {
     /** returns a list of all files and directories in the given path */
     async listDir(filepath: string): Promise<PathList> {
         return new Promise<PathList>((resolve, reject) => {
-            this.okOrErrorRequest("list_dir", [filepath])
+            this.complexRequest("list_dir", [filepath])
                 .then(result => {
                     console.debug("parsing as PathList: " + result);
                     let retval = PathList.from(result);
@@ -207,7 +186,7 @@ export class DefaultMessenger extends BasicMessenger {
      */
     async getRequest(url: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.okOrErrorRequest("get_request", [url])
+            this.complexRequest("get_request", [url])
                 .then(result => {
                     console.debug("get request result: " + result);
                     resolve(result);
