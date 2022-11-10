@@ -1,7 +1,7 @@
 import { skyline } from ".";
 import * as Messages from "./messages";
 import { Progress } from "./progress";
-import { BooleanResponse, OkOrError, StringResponse, PathList, DirTree } from "./responses";
+import { OkOrError, PathList, DirTree } from "./responses";
 
 /**
  * This represents the backend interface, which
