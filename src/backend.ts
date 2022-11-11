@@ -105,6 +105,20 @@ export class DefaultMessenger extends BasicMessenger {
         });
     }
 
+    /**
+     * sends a message to the backend to exit the session.
+     */
+    exitSession(): void {
+        this.send(new Messages.Message("exit_session", null));
+    }
+
+    /**
+     * sends a message to the backend to exit the game entirely.
+     */
+     exitApplication(): void {
+        this.send(new Messages.Message("exit_application", null));
+    }
+
     /** downloads the requested file to the requested 
      * location relative to sdcard root */
      async downloadFile(url: string, location: string, progressCallback?: (p: Progress) => void): Promise<string> {
