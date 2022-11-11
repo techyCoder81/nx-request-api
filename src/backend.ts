@@ -59,16 +59,19 @@ export class BasicMessenger {
      */
     public async complexRequest(name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
         console.debug("beginning " + name);
-        return await this.supplier.invoke(new Messages.Message(name, args), progressCallback).then((json: string) => {
-            console.debug("response for " + name + ": " + json);
-            let response = OkOrError.from(json);
-            if (response.isOk()) {
-                return response.getMessage();
-            } else {
-                throw new Error("Operation failed on the backend, reason: " + response.message);
-            }
-        }).catch((e) => {
-            throw e
+        return new Promise<string>((resolve, reject) => {
+            this.supplier.invoke(new Messages.Message(name, args), progressCallback).then((json: string) => {
+                console.debug("response for " + name + ": " + json);
+                let response = OkOrError.from(json);
+                if (response.isOk()) {
+                    resolve(response.getMessage());
+                } else {
+                    reject("Operation failed on the backend, reason: " + response.message);
+                }
+            }).catch(e => {
+                console.error("rejection of complexRequest: " + e);
+                reject(e);
+            });
         });
     }
 
