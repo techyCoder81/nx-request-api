@@ -9,21 +9,37 @@ or
 `npm install nx-request-api`
 
 # Example usage
-```rust
+```typescript
+import { Progress, DefaultMessenger } from "nx-request-api"
+
 let messenger = new DefaultMessenger();
 try {
-    // using default messenger and register_defaults()
-    let contents = await backend.readFile("sd:/somefile.json");
+    // examples default messenger and register_defaults()
+    // download a file to a location on sd, while providing a progress callback for display
+    let download_result = await messenger.downloadFile(
+        "https://url.com/hugefile.json", 
+        "sd:/hugefile.json", 
+        (p: Progress) => console.info("Operation: " + p.title + ", Progress: " + p.progress)
+    );
+
+    // read the contents of the file (in this case a json file), and parse the data into an object.
+    let contents = await messenger.readFile("sd:/hugefile.json");
     let obj = JSON.parse(contents);
     console.info(obj.some_field);
 
-    // generic invocation for custom handlers
-    let version = await backend.customRequest("get_sdcard_root", null);
-    let result = await backend.customRequest("call_with_args", ["arg1", "arg2", "arg3"]);
-    let is_installed = await backend.booleanRequest("is_installed", null);
 
-    // another example of a default message
-    backend.exitSession();
+    // generic invocation examples for custom handlers
+    // simple string-based request, no arguments
+    let version = await messenger.customRequest("get_sdcard_root", null);
+
+    // string-based request, with no arguments
+    let result = await messenger.customRequest("call_with_args", ["arg1", "arg2", "arg3"]);
+
+    // request which returns a bool instead of a string
+    let is_installed = await messenger.booleanRequest("is_installed", null);
+
+    // another example of a default message call
+    messenger.exitSession();
 } catch (e) { 
     // this will be called if any of the requests are rejected. you can also use .then() and .catch() on the individual calls.
     console.error(e); 
