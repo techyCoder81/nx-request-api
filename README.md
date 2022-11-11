@@ -9,7 +9,7 @@ or
 `npm install nx-request-api`
 
 # Example usage
-```
+```rust
 let messenger = new DefaultMessenger();
 try {
     // using default messenger and register_defaults()
