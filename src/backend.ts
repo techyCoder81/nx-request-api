@@ -47,7 +47,7 @@ export class BasicMessenger {
     public async booleanRequest(name: string, args: string[] | null): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.complexRequest(name, args)
-                .then(result => (result === 'true') ? resolve(true) : resolve(true))
+                .then(result => (result === 'true') ? resolve(true) : resolve(false))
                 .catch(e => {console.error(e);reject(e);});
         });
     }
