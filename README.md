@@ -14,7 +14,7 @@ import { Progress, DefaultMessenger } from "nx-request-api"
 
 let messenger = new DefaultMessenger();
 try {
-    // examples default messenger and register_defaults()
+    // examples using default messenger and register_defaults()
     // download a file to a location on sd, while providing a progress callback for display
     let download_result = await messenger.downloadFile(
         "https://url.com/hugefile.json", 
