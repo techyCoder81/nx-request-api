@@ -11,7 +11,7 @@ import { OkOrError, PathList, DirTree } from "./responses";
  */
  export interface BackendSupplier {
     /** invokes on the backend instance and returns a promise of a result */
-    invoke(message: Messages.Message, progressCallback?: (p: Progress) => void): Promise<string>;
+    invoke(call_name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string>;
 }
 
 /**
@@ -43,7 +43,7 @@ export class BasicMessenger {
      */
     public async booleanRequest(name: string, args: string[] | null): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.complexRequest(name, args)
+            this.customRequest(name, args)
                 .then(result => (result === 'true') ? resolve(true) : resolve(false))
                 .catch(e => {console.error(e);reject(e);});
         });
@@ -54,10 +54,10 @@ export class BasicMessenger {
      * @param name the name of the request
      * @returns a promise which resolves if the result is Ok, and rejects if the result is a failure
      */
-    public async complexRequest(name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
+    public async customRequest(name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
         console.debug("beginning " + name);
         return new Promise<string>((resolve, reject) => {
-            this.supplier.invoke(new Messages.Message(name, args), progressCallback).then((json: string) => {
+            this.supplier.invoke(name, args, progressCallback).then((json: string) => {
                 console.debug("response for " + name + ": " + json);
                 let response = OkOrError.from(json);
                 if (response.isOk()) {
@@ -66,7 +66,7 @@ export class BasicMessenger {
                     reject("Operation failed on the backend, reason: " + response.message);
                 }
             }).catch(e => {
-                console.error("rejection of complexRequest: " + e);
+                console.error("rejection of customRequest: " + e);
                 reject(e);
             });
         });
@@ -76,8 +76,8 @@ export class BasicMessenger {
      *  invokes on the backend instance and returns a promise of a result. This is available
      *  for the purpose of defining custom requests.
      */
-    invoke(message: Messages.Message, progressCallback?: (p: Progress) => void): Promise<string> {
-        return this.supplier.invoke(message, progressCallback);
+    invoke(call_name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
+        return this.supplier.invoke(call_name, args, progressCallback);
     }
 }
 
@@ -91,7 +91,7 @@ export class DefaultMessenger extends BasicMessenger {
      * @returns whether the backend responded.
      */
     async ping(): Promise<boolean> {
-        return this.complexRequest("ping", null).then((response) => {
+        return this.customRequest("ping", null).then((response) => {
             console.debug("Ping got response: " + response);
             return true;
         }).catch(e => {
@@ -104,45 +104,45 @@ export class DefaultMessenger extends BasicMessenger {
      * sends a message to the backend to exit the session.
      */
     exitSession(): Promise<string> {
-        return this.invoke(new Messages.Message("exit_session", null));
+        return this.invoke("exit_session", null);
     }
 
     /**
      * sends a message to the backend to exit the game entirely.
      */
      exitApplication(): Promise<string> {
-        return this.invoke(new Messages.Message("exit_application", null));
+        return this.invoke("exit_application", null);
     }
 
     /** downloads the requested file to the requested 
      * location relative to sdcard root */
      async downloadFile(url: string, location: string, progressCallback?: (p: Progress) => void): Promise<string> {
-        return this.complexRequest("download_file", [url, location], progressCallback);
+        return this.customRequest("download_file", [url, location], progressCallback);
     }
 
     /** returns the text contents of a file */
     async readFile(filepath: string): Promise<string> {
-        return this.complexRequest("read_file", [filepath]);
+        return this.customRequest("read_file", [filepath]);
     }
 
     /** deletes the given file if it exists */
     async deleteFile(filepath: string): Promise<string> {
-        return this.complexRequest("delete_file", [filepath]);
+        return this.customRequest("delete_file", [filepath]);
     }
 
     /** deletes the given file if it exists */
     async writeFile(filepath: string, data: string): Promise<string> {
-        return this.complexRequest("write_file", [filepath, data]);
+        return this.customRequest("write_file", [filepath, data]);
     }
 
     /** returns the md5 checksum of a file */
     async getMd5(filepath: string): Promise<string> {
-        return this.complexRequest("get_md5", [filepath]);
+        return this.customRequest("get_md5", [filepath]);
     }
 
     /** unzips the file at the given path to the given destination */
     async unzip(filepath: string, destination: string): Promise<string> {
-        return this.complexRequest("unzip", [filepath, destination]);
+        return this.customRequest("unzip", [filepath, destination]);
     }
 
     /** returns whether a file exists with the given absolute path */
@@ -158,7 +158,7 @@ export class DefaultMessenger extends BasicMessenger {
     /** returns a list of all files and directories recursively under the given path */
     async listDirAll(filepath: string): Promise<DirTree> {
         return new Promise<DirTree>((resolve, reject) => {
-            this.complexRequest("list_all_files", [filepath])
+            this.customRequest("list_all_files", [filepath])
                 .then(result => {
                     let retval = DirTree.fromStr(result);
                     console.debug("parsed directory list as PathList!");
@@ -174,7 +174,7 @@ export class DefaultMessenger extends BasicMessenger {
     /** returns a list of all files and directories in the given path */
     async listDir(filepath: string): Promise<PathList> {
         return new Promise<PathList>((resolve, reject) => {
-            this.complexRequest("list_dir", [filepath])
+            this.customRequest("list_dir", [filepath])
                 .then(result => {
                     console.debug("parsing as PathList: " + result);
                     let retval = PathList.from(result);
@@ -195,7 +195,7 @@ export class DefaultMessenger extends BasicMessenger {
      */
     async getRequest(url: string): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.complexRequest("get_request", [url])
+            this.customRequest("get_request", [url])
                 .then(result => {
                     console.debug("get request result: " + result);
                     resolve(result);
@@ -274,7 +274,8 @@ export class SwitchBackend implements BackendSupplier {
         });
     }
     
-    invoke(message: Messages.Message, progressCallback?: (p: Progress) => void): Promise<string> {
+    invoke(call_name: string, args: string[] | null, progressCallback?: (p: Progress) => void): Promise<string> {
+        let message = new Messages.Message(call_name, args);
         console.debug("trying to invoke on nx: " + JSON.stringify(message));
         return new Promise((resolve, reject) => {
             try {
