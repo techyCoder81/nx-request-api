@@ -10,9 +10,6 @@ import { OkOrError, PathList, DirTree } from "./responses";
  * calls available in skyline-web applications.
  */
  export interface BackendSupplier {
-    /** sends an async message to the backend instance, with no response */
-    send(message: Messages.Message): any;
-
     /** invokes on the backend instance and returns a promise of a result */
     invoke(message: Messages.Message, progressCallback?: (p: Progress) => void): Promise<string>;
 }
@@ -75,11 +72,6 @@ export class BasicMessenger {
         });
     }
 
-    /** sends an async message to the backend instance, with no response */
-    send(message: Messages.Message): any {
-        return this.supplier.send(message);
-    }
-
     /**
      *  invokes on the backend instance and returns a promise of a result. This is available
      *  for the purpose of defining custom requests.
@@ -111,15 +103,15 @@ export class DefaultMessenger extends BasicMessenger {
     /**
      * sends a message to the backend to exit the session.
      */
-    exitSession(): void {
-        this.send(new Messages.Message("exit_session", null));
+    exitSession(): Promise<string> {
+        return this.invoke(new Messages.Message("exit_session", null));
     }
 
     /**
      * sends a message to the backend to exit the game entirely.
      */
-     exitApplication(): void {
-        this.send(new Messages.Message("exit_application", null));
+     exitApplication(): Promise<string> {
+        return this.invoke(new Messages.Message("exit_application", null));
     }
 
     /** downloads the requested file to the requested 
@@ -325,10 +317,5 @@ export class SwitchBackend implements BackendSupplier {
                 reject("Error: " + JSON.stringify(e));
             }
         });
-    }
-
-    send(message: Messages.Message) {
-        console.debug("trying to send to nx: " + JSON.stringify(message));
-        skyline.sendMessage(JSON.stringify(message));
     }
 }
