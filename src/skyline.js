@@ -2,20 +2,27 @@
 
 export function sendMessage(object) {
     console.debug("sending to nx: \n" + object)
+    if (window.nx === undefined) {
+        console.warn("window.nx is not defined, this is likely a test environment.")
+        return;
+    }
     window.nx.sendMessage(object);
 }
 
 export function addEventListener(eventName, callback) {
+    if (window.nx === undefined) {
+        console.warn("window.nx is not defined, this is likely a test environment.")
+        return;
+    }
     return window.nx.addEventListener(eventName, callback);
 }
 
 export function removeEventListener(listener) {
+    if (window.nx === undefined) {
+        console.warn("window.nx is not defined, this is likely a test environment.")
+        return;
+    }
     return window.nx.removeEventListener(listener);
-}
-
-export function printData() {
-    console.debug("window.nx names:");
-    console.debug(Object.getOwnPropertyNames(window.nx));
 }
 
 export function setButtonAction(button, action) {
