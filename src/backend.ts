@@ -101,6 +101,14 @@ export class DefaultMessenger extends BasicMessenger {
     }
 
     /**
+     * sends a string to be logged by the backend logger with println!()
+     * @returns acknowledgement
+     */
+     async println(str: string): Promise<String> {
+        return this.invoke("log", [str]);
+    }
+
+    /**
      * sends a message to the backend to exit the session.
      */
     exitSession(): Promise<string> {
