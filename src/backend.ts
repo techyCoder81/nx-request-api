@@ -149,8 +149,8 @@ export class DefaultMessenger extends BasicMessenger {
     }
 
     /** unzips the file at the given path to the given destination */
-    async unzip(filepath: string, destination: string): Promise<string> {
-        return this.customRequest("unzip", [filepath, destination]);
+    async unzip(filepath: string, destination: string, progressCallback?: (p: Progress) => void): Promise<string> {
+        return this.customRequest("unzip", [filepath, destination], progressCallback);
     }
 
     /** returns whether a file exists with the given absolute path */
@@ -164,9 +164,9 @@ export class DefaultMessenger extends BasicMessenger {
     }
 
     /** returns a list of all files and directories recursively under the given path */
-    async listDirAll(filepath: string): Promise<DirTree> {
+    async listDirAll(filepath: string, progressCallback?: (p: Progress) => void): Promise<DirTree> {
         return new Promise<DirTree>((resolve, reject) => {
-            this.customRequest("list_all_files", [filepath])
+            this.customRequest("list_all_files", [filepath], progressCallback)
                 .then(result => {
                     let retval = DirTree.fromStr(result);
                     console.debug("parsed directory list as PathList!");
@@ -201,9 +201,9 @@ export class DefaultMessenger extends BasicMessenger {
      * @param url the url
      * @returns the body of the returned data
      */
-    async getRequest(url: string): Promise<string> {
+    async getRequest(url: string, progressCallback?: (p: Progress) => void): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.customRequest("get_request", [url])
+            this.customRequest("get_request", [url], progressCallback)
                 .then(result => {
                     console.debug("get request result: " + result);
                     resolve(result);
@@ -220,9 +220,9 @@ export class DefaultMessenger extends BasicMessenger {
      * @param url the url
      * @returns the parsed object the json represented
      */
-    async getJson(url: string): Promise<any> {
+    async getJson(url: string, progressCallback?: (p: Progress) => void): Promise<any> {
         return new Promise<PathList>((resolve, reject) => {
-            this.getRequest(url).then(result => {
+            this.getRequest(url, progressCallback).then(result => {
                 resolve(JSON.parse(result));
             })
             .catch(e => {
