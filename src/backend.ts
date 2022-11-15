@@ -263,11 +263,12 @@ export class SwitchBackend implements BackendSupplier {
                     var id: string = response.id;
                 } catch (e) {
                     console.error("parse/callback failure of received data!\nError: " + e + "\nData: " + data);
+                    alert("An error has occurred while receiving data from the backend.\n" + e);
                     return;
                 }
 
                 var callback = this.callbacks.get(id);
-                if (callback != undefined) {
+                if (callback !== undefined) {
                     try {
                         callback(response);
                     } catch (e) {
@@ -287,13 +288,13 @@ export class SwitchBackend implements BackendSupplier {
         console.debug("trying to invoke on nx: " + JSON.stringify(message));
         return new Promise((resolve, reject) => {
             try {
-                console.debug("setting callback for skyline invocation");
+                console.debug("beginning callback for skyline invocation, callback?: " + progressCallback);
 
                 // if a progress callback was defined, set the callback
-                if (typeof progressCallback !== 'undefined') {
+                if (progressCallback !== undefined) {
+                    console.debug("setting progress callback!");
                     this.callbacks.set("progress", (response) => {
                         try {
-                            
                             progressCallback(Progress.from(response.message));
                         } catch (e) {
                             console.error("Could not parse response as Progress: " + response);
