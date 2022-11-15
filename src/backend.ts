@@ -292,14 +292,17 @@ export class SwitchBackend implements BackendSupplier {
 
                 // if a progress callback was defined, set the callback
                 if (progressCallback !== undefined) {
-                    console.debug("setting progress callback!");
+                    // use the real progress callback given
                     this.callbacks.set("progress", (response) => {
                         try {
                             progressCallback(Progress.from(response.message));
                         } catch (e) {
                             console.error("Could not parse response as Progress: " + response);
                         }
-                    })
+                    });
+                } else {
+                    // use an empty progress callback, since no callback was provided
+                    this.callbacks.set("progress", (res) => {});
                 }
                 var first_response: any = null;
                 // set a callback for when that ID is returned
