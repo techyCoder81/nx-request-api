@@ -148,6 +148,11 @@ export class DefaultMessenger extends BasicMessenger {
         return this.customRequest("get_md5", [filepath]);
     }
 
+    /** makes the given directory(ies) recursively */
+    async mkdir(path: string): Promise<string> {
+        return this.customRequest("mkdir", [path]);
+    }
+
     /** unzips the file at the given path to the given destination */
     async unzip(filepath: string, destination: string, progressCallback?: (p: Progress) => void): Promise<string> {
         return this.customRequest("unzip", [filepath, destination], progressCallback);
