@@ -279,6 +279,8 @@ export class SwitchBackend implements BackendSupplier {
                     } catch (e) {
                         console.error("Callback failed for id " + id + " with error " + e);
                     }
+                } else if (id === 'progress') {
+                    console.debug("got progress, but no callback assigned. Dropping.");
                 } else {
                     console.error("Received response for unknown ID: " + JSON.stringify(response));
                 }

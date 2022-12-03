@@ -1,6 +1,6 @@
 {
   "name": "nx-request-api",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "NPM package for making requests to Nintendo Switch Skyline plugins using the native `window.nx` functionality.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
