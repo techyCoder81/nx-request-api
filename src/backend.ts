@@ -138,7 +138,7 @@ export class DefaultMessenger extends BasicMessenger {
         return this.customRequest("delete_file", [filepath]);
     }
 
-    /** deletes the given file if it exists */
+    /** (over)writes to the given file */
     async writeFile(filepath: string, data: string): Promise<string> {
         return this.customRequest("write_file", [filepath, data]);
     }
